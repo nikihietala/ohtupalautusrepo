@@ -1,5 +1,5 @@
 import unittest
-from statistics_service import StatisticsService
+from statistics_service import StatisticsService, SortBy
 from player import Player
 
 class PlayerReaderStub:
@@ -39,11 +39,36 @@ class TestStatisticsService(unittest.TestCase):
 
         self.assertEqual(len(players), 0)
     
-    def test_top_returns_top_scorers(self):
-        top_scorers = self.stats.top(3)
-
+    def test_top_returns_top_sorted_by_points(self):
+        top_scorers = self.stats.top(3, SortBy.POINTS)
         self.assertEqual(len(top_scorers), 3)
         self.assertEqual(top_scorers[0].name, "Gretzky")
         self.assertEqual(top_scorers[1].name, "Lemieux")
         self.assertEqual(top_scorers[2].name, "Yzerman")
+    
+    def test_top_returns_top_sorted_by_goals(self):
+        top_scorers = self.stats.top(3, SortBy.GOALS)
+        self.assertEqual(len(top_scorers), 3)
+        self.assertEqual(top_scorers[0].name, "Lemieux")
+        self.assertEqual(top_scorers[1].name, "Yzerman")
+        self.assertEqual(top_scorers[2].name, "Kurri")
+    
+    def test_top_returns_top_sorted_by_assists(self):
+        top_scorers = self.stats.top(3, SortBy.ASSISTS)
+        self.assertEqual(len(top_scorers), 3)
+        self.assertEqual(top_scorers[0].name, "Gretzky")
+        self.assertEqual(top_scorers[1].name, "Yzerman")
+        self.assertEqual(top_scorers[2].name, "Lemieux")
+
+    def test_top_returns_top_scorers_sorted_by_default(self):
+        top_scorers = self.stats.top(3)
+        self.assertEqual(len(top_scorers), 3)
+        self.assertEqual(top_scorers[0].name, "Gretzky")
+        self.assertEqual(top_scorers[1].name, "Lemieux")
+        self.assertEqual(top_scorers[2].name, "Yzerman")
+    
+    def test_invalid_sort(self):
+        with self.assertRaises(Exception):
+            self.stats.top(3, "invalid sort_by value")
+
     
