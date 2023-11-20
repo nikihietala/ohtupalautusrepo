@@ -31,5 +31,19 @@ Go To Login Page
 Go To Register Page
     Go To  ${REGISTER_URL}
 
+Go To Home Page
+    Go To  ${HOME_URL}
+
 Register Page Should Be Open
     Title Should Be  Register
+
+Login Should Succeed
+    Main Page Should Be Open
+
+Login Should Fail With Message
+    [Arguments]  ${message}
+    Login Page Should Be Open
+    Page Should Contain  ${message}
+
+Submit Credentials
+    Click Button  Login
