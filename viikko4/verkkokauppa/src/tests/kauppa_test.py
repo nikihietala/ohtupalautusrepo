@@ -11,7 +11,7 @@ class TestKauppa(unittest.TestCase):
 
     def setUp(self):
         self.pankki_mock = Mock()
-        self.viitegeneraattori_mock = Mock()
+        self.viitegeneraattori_mock = Mock(wraps=Viitegeneraattori())
         self.varasto_mock = Mock()
         self.viitegeneraattori_mock.uusi.return_value = 42
 
@@ -82,4 +82,46 @@ class TestKauppa(unittest.TestCase):
 
         # Varmistetaan, että metodia tilisiirto on kutsuttu oikeilla argumenteilla
         self.pankki_mock.tilisiirto.assert_called_with("pekka", 42, "12345", ANY, 5)
-        
+    
+    def test_aloita_asiointi_nollaa_edellisen_ostoksen_tiedot(self):
+        # Tehdään ostokset
+        self.kauppa.aloita_asiointi()
+        self.kauppa.lisaa_koriin(1)
+
+        self.kauppa.aloita_asiointi()
+        self.kauppa.lisaa_koriin(2)
+        self.kauppa.tilimaksu("pekka", "12345")
+
+        # Varmistetaan, että metodia tilisiirto on kutsuttu oikeilla argumenteilla
+        self.pankki_mock.tilisiirto.assert_called_with("pekka", 42, "12345", ANY, 10)
+
+    def test_uusi_viitenumero_jokaiselle_maksutapahtumalle(self):
+        # Tehdään ostokset
+        self.kauppa.aloita_asiointi()
+        self.kauppa.lisaa_koriin(1)
+        self.kauppa.tilimaksu("pekka", "12345")
+
+        # tarkistetaan että tässä vaiheessa viitegeneraattorin metodia uusi on kutsuttu kerran
+        self.assertEqual(self.viitegeneraattori_mock.uusi.call_count, 1)
+
+        self.kauppa.aloita_asiointi()
+        self.kauppa.lisaa_koriin(2)
+        self.kauppa.tilimaksu("pekka", "12345")
+
+        # tarkistetaan että tässä vaiheessa viitegeneraattorin metodia uusi on kutsuttu kaksi kertaa
+        self.assertEqual(self.viitegeneraattori_mock.uusi.call_count, 2)
+    
+    def test_poista_korista_palauttaa_tuotteen_varastoon(self):
+        self.kauppa.aloita_asiointi()
+        self.kauppa.lisaa_koriin(1)
+        self.kauppa.poista_korista(1)
+        self.assertEqual(self.varasto_mock.palauta_varastoon.call_count, 1)
+    
+    def test_poista_korista_palauttaa_tuotteen_varastoon_oikealla_tuotteella(self):
+        self.kauppa.aloita_asiointi()
+        self.kauppa.lisaa_koriin(1)
+        self.kauppa.poista_korista(1)
+        self.varasto_mock.palauta_varastoon.assert_called_with(Tuote(1, "maito", 5))
+
+
+
